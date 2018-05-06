@@ -1,6 +1,8 @@
 package com.luqi.config;
 
 import com.luqi.security.AuthProvider;
+import com.luqi.security.LoginAuthFailHandler;
+import com.luqi.security.LoginUrlEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -41,17 +43,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .formLogin()
                 .loginProcessingUrl("/login") // 配置角色登录处理入口
-                /*.failureHandler(authFailHandler())*/
+                .failureHandler(authFailHandler()) // 登录失败验证器
                 .and()
-                /*.logout()
+                .logout()
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/logout/page")
                 .deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true)
+                .invalidateHttpSession(true) //session会话失效
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(urlEntryPoint())
-                .accessDeniedPage("/403")*/;
+                .accessDeniedPage("/403");
 
         // 防御配置,方便开发就先关闭
         http.csrf().disable();
@@ -66,7 +68,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void configGlobal(AuthenticationManagerBuilder auth) throws Exception {
 //        auth.inMemoryAuthentication().withUser("admin").password("admin").roles("ADMIN").and();
-
         // 擦除密码
         auth.authenticationProvider(authProvider()).eraseCredentials(true);
 
@@ -75,6 +76,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthProvider authProvider() {
         return new AuthProvider();
+    }
+
+    // 默认走用户的登录
+    @Bean
+    public LoginUrlEntryPoint urlEntryPoint() {
+        return new LoginUrlEntryPoint("/user/login");
+    }
+
+    @Bean
+    public LoginAuthFailHandler authFailHandler() {
+        return new LoginAuthFailHandler(urlEntryPoint());
     }
 
 //    @Bean
