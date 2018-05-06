@@ -1,4 +1,4 @@
-package com.luqi.controller;
+package com.luqi.web.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
