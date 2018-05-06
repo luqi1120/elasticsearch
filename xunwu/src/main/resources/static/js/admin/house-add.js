@@ -1,7 +1,3 @@
-/**
- * Created by 瓦力.
- */
-
 $(function () {
     // 自定义地址选择器
     var $city = $("#city"),

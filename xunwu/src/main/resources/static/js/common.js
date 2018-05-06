@@ -1,7 +1,3 @@
-/**
- * Created by 瓦力.
- */
-
 Date.prototype.Format = function(fmt) {
 
     var o = {

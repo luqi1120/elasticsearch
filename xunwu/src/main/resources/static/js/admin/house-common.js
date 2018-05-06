@@ -1,7 +1,3 @@
-/**
- * Created by 瓦力.
- */
-
 var tipStr = '<option value="">请选择</option>';
 
 function showError(message) {
