@@ -1,8 +1,13 @@
 package com.luqi.entity;
 
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by luqi
@@ -10,7 +15,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "user")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +43,7 @@ public class User {
 
     private String avatar;
 
+
     public Long getId() {
         return id;
     }
@@ -56,6 +62,50 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    /**
+     * 用来保存权限信息
+     */
+    @Transient
+    private List<GrantedAuthority> authorityList;
+
+    public List<GrantedAuthority> getAuthorityList() {
+        return authorityList;
+    }
+
+    public void setAuthorityList(List<GrantedAuthority> authorityList) {
+        this.authorityList = authorityList;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.authorityList;
+    }
+
+    @Override
+    public String getUsername() {
+        return name;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public void setPassword(String password) {

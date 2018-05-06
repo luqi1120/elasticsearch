@@ -27,4 +27,13 @@ public class AdminController {
     public String welcomePage() {
         return "admin/welcome";
     }
+
+    /**
+     * 登录页
+     * @return
+     */
+    @GetMapping("/admin/login")
+    public String adminLoginPage() {
+        return "admin/login";
+    }
 }
