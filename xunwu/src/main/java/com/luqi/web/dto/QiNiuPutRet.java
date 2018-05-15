@@ -1,4 +1,4 @@
-package com.luqi.web.dao;
+package com.luqi.web.dto;
 
 /**
  * 七牛返回结果与QiNiuServiceImpl.afterPropertiesSet()方法中参数必须保持一致

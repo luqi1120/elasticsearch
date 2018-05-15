@@ -3,7 +3,7 @@ package com.luqi.web.controller.admin;
 import com.google.gson.Gson;
 import com.luqi.base.ApiResponse;
 import com.luqi.service.QiNiuService;
-import com.luqi.web.dao.QiNiuPutRet;
+import com.luqi.web.dto.QiNiuPutRet;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 

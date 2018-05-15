@@ -28,8 +28,8 @@ public class QiNiuServiceImpl implements QiNiuService, InitializingBean {
     @Autowired
     private BucketManager bucketManager;  // 空间管理
 
-    @Autowired
-    private Auth auth;  // 认证信息
+//    @Autowired
+//    private Auth auth;  // 认证信息
 
     @Value("${qiniu.Bucket}")
     private String bucket;  // 空间名
@@ -84,6 +84,7 @@ public class QiNiuServiceImpl implements QiNiuService, InitializingBean {
      * 获取上传凭证
      */
     public String getUploadToken() {
-        return this.auth.uploadToken(bucket, null, 3600, putPolicy);
+//        return this.auth.uploadToken(bucket, null, 3600, putPolicy);
+        return "";
     }
 }

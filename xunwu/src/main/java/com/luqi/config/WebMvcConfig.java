@@ -1,5 +1,6 @@
 package com.luqi.config;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -73,5 +74,14 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter implements Application
         ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
         viewResolver.setTemplateEngine(templateEngine());
         return viewResolver;
+    }
+
+    /**
+     * Bean Util
+     * @return
+     */
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 }
