@@ -72,11 +72,11 @@ public class ApiResponse {
 
     public enum Status {
         SUCCESS(200, "OK"),
-        BAN_REQUEST(400, "Bac Request"),
+        BAD_REQUEST(400, "Bad Request"),
         NOT_FOUND(404, "Not Found"),
         INTERNAL_SERVER_ERROR(500, "Unknown Internal Error"),
         NOT_VALID_PARAM(40005, "Not valid Params"),
-        NOT_SUPPORTED_OPERATION(40006, "Operation Not Supported"),
+        NOT_SUPPORTED_OPERATION(40006, "Operation not supported"),
         NOT_LOGIN(50000, "Not Login");
 
         private int code;
