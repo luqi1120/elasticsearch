@@ -2,10 +2,12 @@ package com.luqi.web.controller.admin;
 
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import com.luqi.base.ApiDataTableResponse;
 import com.luqi.base.ApiResponse;
 import com.luqi.entity.SupportAddress;
 import com.luqi.service.*;
 import com.luqi.web.dto.*;
+import com.luqi.web.from.DatatableSearch;
 import com.luqi.web.from.HouseForm;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
@@ -70,6 +72,29 @@ public class AdminController {
     @GetMapping("/admin/login")
     public String adminLoginPage() {
         return "admin/login";
+    }
+
+    /**
+     * 房源列表页
+     * @return
+     */
+    @GetMapping("admin/house/list")
+    public String houseListPage() {
+        return "admin/house-list";
+    }
+
+    @PostMapping("admin/houses")
+    @ResponseBody
+    public ApiDataTableResponse houses(@ModelAttribute DatatableSearch searchBody) {
+        ServiceMultiResult<HouseDTO> result = houseService.adminQuery(searchBody);
+
+        ApiDataTableResponse response = new ApiDataTableResponse(ApiResponse.Status.SUCCESS);
+        response.setData(result.getResult());
+        response.setRecordsFiltered(result.getTotal());
+        response.setRecordsTotal(result.getTotal());
+
+        response.setDraw(searchBody.getDraw());
+        return response;
     }
 
     /**
