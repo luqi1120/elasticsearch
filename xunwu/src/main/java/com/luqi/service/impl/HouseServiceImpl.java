@@ -346,7 +346,7 @@ public class HouseServiceImpl implements HouseService {
     @Override
     public ServiceMultiResult<HouseDTO> query(RentSearch rentSearch) {
 
-        // 排序
+        // 排序 规则为根据时间排序  private String orderBy = "lastUpdateTime";
         Sort sort = new Sort(Sort.Direction.DESC, "lastUpdateTime");
 
         // 第几页
