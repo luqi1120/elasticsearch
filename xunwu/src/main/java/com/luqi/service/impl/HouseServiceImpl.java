@@ -18,11 +18,13 @@ import com.luqi.web.from.RentSearch;
 //import org.elasticsearch.search.SearchService;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
+import org.elasticsearch.search.SearchService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -343,6 +345,40 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public ServiceMultiResult<HouseDTO> query(RentSearch rentSearch) {
+
+        // 排序
+        Sort sort = new Sort(Sort.Direction.DESC, "lastUpdateTime");
+
+        // 第几页
+        int page = rentSearch.getStart() / rentSearch.getSize();
+
+        // 分页   new PageRequest(page, rentSearch.getSize(), sort);
+        Pageable pageable = new PageRequest(page, rentSearch.getSize(), sort);
+
+        Specification<House> specification = ((root, criteriaQuery, criteriaBuilder) -> {
+
+            // 传入的status的状态码必须要等于 HouseStatus.PASSES.getValue() PASSES表示审核通过
+            Predicate predicate = criteriaBuilder.equal(root.get("status"), HouseStatus.PASSES.getValue());
+
+            // 拼接查询条件
+            predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("cityEnName"), rentSearch.getCityEnName()));
+            return predicate;
+
+        });
+
+        // 分页查询
+        Page<House> houses = houseRepository.findAll(specification, pageable);
+
+        List<HouseDTO> houseDTOS = new ArrayList<>();
+
+        houses.forEach(house -> {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(this.cdnPrefix + house.getCover());
+            houseDTOS.add(houseDTO);
+        });
+
+        return new ServiceMultiResult<>(houses.getTotalElements(), houseDTOS);
+
 //        if (rentSearch.getKeywords() != null && !rentSearch.getKeywords().isEmpty()) {
 //            ServiceMultiResult<Long> serviceResult = searchService.query(rentSearch);
 //            if (serviceResult.getTotal() == 0) {
@@ -353,7 +389,7 @@ public class HouseServiceImpl implements HouseService {
 //        }
 //
 //        return simpleQuery(rentSearch);
-        return null;
+//        return null;
     }
 
     /**

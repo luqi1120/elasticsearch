@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class HomeController {
 
-    @GetMapping("/")
+    @GetMapping(value = {"/", "/index"}) // 兼容
     public String index(Model model) {
         model.addAttribute("name", "luqi");
         return  "index";
