@@ -1,5 +1,6 @@
 package com.luqi.service.impl;
 
+import com.luqi.base.HouseSort;
 import com.luqi.base.HouseStatus;
 import com.luqi.base.LoginUserUtil;
 import com.luqi.entity.*;
@@ -31,9 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by luqi
@@ -347,7 +346,8 @@ public class HouseServiceImpl implements HouseService {
     public ServiceMultiResult<HouseDTO> query(RentSearch rentSearch) {
 
         // 排序 规则为根据时间排序  private String orderBy = "lastUpdateTime";
-        Sort sort = new Sort(Sort.Direction.DESC, "lastUpdateTime");
+        Sort sort = HouseSort.generateSort(rentSearch.getOrderBy(), rentSearch.getOrderDirection());
+
 
         // 第几页
         int page = rentSearch.getStart() / rentSearch.getSize();
@@ -362,8 +362,11 @@ public class HouseServiceImpl implements HouseService {
 
             // 拼接查询条件
             predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("cityEnName"), rentSearch.getCityEnName()));
-            return predicate;
 
+            if (HouseSort.DISTANCE_TO_SUBWAY_KEY.equals(rentSearch.getOrderBy())) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.gt(root.get(HouseSort.DISTANCE_TO_SUBWAY_KEY), -1));
+            }
+            return predicate;
         });
 
         // 分页查询
@@ -371,11 +374,18 @@ public class HouseServiceImpl implements HouseService {
 
         List<HouseDTO> houseDTOS = new ArrayList<>();
 
+        // 查询houseDetail
+        List<Long> HouseIds = new ArrayList<>();
+        Map<Long, HouseDTO> idToHouseMap = new HashMap<>();
+
         houses.forEach(house -> {
             HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
             houseDTO.setCover(this.cdnPrefix + house.getCover());
             houseDTOS.add(houseDTO);
+            HouseIds.add(house.getId());
+            idToHouseMap.put(house.getId(), houseDTO);
         });
+        wrapperHouseList(HouseIds, idToHouseMap);
 
         return new ServiceMultiResult<>(houses.getTotalElements(), houseDTOS);
 
@@ -447,5 +457,25 @@ public class HouseServiceImpl implements HouseService {
         houseDetail.setTraffic(houseForm.getTraffic());
         return null;
 
+    }
+
+    /**
+     * 渲染详细信息 及 标签
+     * @param houseIds
+     * @param idToHouseMap
+     */
+    private void wrapperHouseList(List<Long> houseIds, Map<Long, HouseDTO> idToHouseMap) {
+        List<HouseDetail> details = houseDetailRepository.findAllByHouseIdIn(houseIds);
+        details.forEach(houseDetail -> {
+            HouseDTO houseDTO = idToHouseMap.get(houseDetail.getHouseId());
+            HouseDetailDTO detailDTO = modelMapper.map(houseDetail, HouseDetailDTO.class);
+            houseDTO.setHouseDetail(detailDTO);
+        });
+
+        List<HouseTag> houseTags = houseTagRepository.findAllByHouseIdIn(houseIds);
+        houseTags.forEach(houseTag -> {
+            HouseDTO house = idToHouseMap.get(houseTag.getHouseId());
+            house.getTags().add(houseTag.getName());
+        });
     }
 }
