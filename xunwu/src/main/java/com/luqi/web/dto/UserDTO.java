@@ -1,7 +1,7 @@
 package com.luqi.web.dto;
 
 /**
- * Created by luqi
+ * Created by luQi
  * 2018-05-15 23:42.
  */
 public class UserDTO {

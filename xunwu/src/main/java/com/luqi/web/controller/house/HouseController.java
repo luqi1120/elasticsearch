@@ -2,26 +2,19 @@ package com.luqi.web.controller.house;
 
 import com.luqi.base.ApiResponse;
 import com.luqi.base.RentValueBlock;
-import com.luqi.service.AddressService;
-import com.luqi.service.HouseService;
-import com.luqi.service.ServiceMultiResult;
-import com.luqi.service.ServiceResult;
-import com.luqi.web.dto.HouseDTO;
-import com.luqi.web.dto.SubwayDTO;
-import com.luqi.web.dto.SubwayStationDTO;
-import com.luqi.web.dto.SupportAddressDTO;
+import com.luqi.entity.SupportAddress;
+import com.luqi.service.*;
+import com.luqi.web.dto.*;
 import com.luqi.web.from.RentSearch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by luqi
@@ -36,8 +29,12 @@ public class HouseController {
     @Autowired
     private HouseService houseService;
 
+    @Autowired
+    private UserService userService;
+
     /**
      * 获取支持城市列表
+     *
      * @return
      */
     @GetMapping("address/support/cities")
@@ -52,6 +49,7 @@ public class HouseController {
 
     /**
      * 获取对应城市支持区域列表
+     *
      * @param cityEnName
      * @return
      */
@@ -67,6 +65,7 @@ public class HouseController {
 
     /**
      * 获取具体城市所支持的地铁线路
+     *
      * @param cityEnName
      * @return
      */
@@ -83,6 +82,7 @@ public class HouseController {
 
     /**
      * 获取对应地铁线路所支持的地铁站点
+     *
      * @param subwayId
      * @return
      */
@@ -149,6 +149,46 @@ public class HouseController {
         model.addAttribute("currentAreaBlock", RentValueBlock.matchArea(rentSearch.getAreaBlock()));
 
         return "rent-list";
+    }
+
+    // 房屋详情页
+    @GetMapping("rent/house/show/{id}")
+    public String show(@PathVariable(value = "id") Long houseId, Model model) {
+        if (houseId <= 0) {
+            return "404";
+        }
+
+        // 查询完整房源信息
+        ServiceResult<HouseDTO> serviceResult = houseService.findCompleteOne(houseId);
+        if (!serviceResult.isSuccess()) {
+            return "404";
+        }
+
+        HouseDTO houseDTO = serviceResult.getResult();
+
+        // 根据英文简写获取具体区域的信息
+        Map<SupportAddress.Level, SupportAddressDTO> addressMap = addressService.
+                findCityAndRegion(houseDTO.getCityEnName(), houseDTO.getRegionEnName());
+
+        SupportAddressDTO city = addressMap.get(SupportAddress.Level.CITY);  // 城市
+        SupportAddressDTO region = addressMap.get(SupportAddress.Level.REGION); // 地区
+
+        model.addAttribute("city", city);
+        model.addAttribute("region", region);
+
+        // 查询房屋的用户信息 houseDTO.getAdminId()为写死的 adminId
+        ServiceResult<UserDTO> userDTOServiceResult = userService.findById(houseDTO.getAdminId());
+
+        // 经纪人存进去
+        model.addAttribute("agent", userDTOServiceResult.getResult());
+        model.addAttribute("house", houseDTO);
+
+//        ServiceResult<Long> aggResult = searchService.aggregateDistrictHouse(city.getEnName(), region.getEnName(), houseDTO.getDistrict());
+
+        // 聚合数据 要使用ES聚合功能
+        model.addAttribute("houseCountInDistrict", 0);
+
+        return "house-detail";
     }
 
 }

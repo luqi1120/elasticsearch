@@ -4,7 +4,10 @@ import com.luqi.entity.Role;
 import com.luqi.entity.User;
 import com.luqi.repository.RoleRepository;
 import com.luqi.repository.UserRepository;
+import com.luqi.service.ServiceResult;
 import com.luqi.service.UserService;
+import com.luqi.web.dto.UserDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,6 +30,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Override
     public User findUserByName(String username) {
         User user = userRepository.findByName(username);
@@ -45,6 +51,16 @@ public class UserServiceImpl implements UserService {
         user.setAuthorityList(authorities);  // 给user设置权限
 
         return user;
+    }
+
+    @Override
+    public ServiceResult<UserDTO> findById(Long userId) {
+        User user = userRepository.findOne(userId);
+        if (user == null) {
+            return ServiceResult.notFound();
+        }
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        return ServiceResult.of(userDTO);
     }
 
 }
