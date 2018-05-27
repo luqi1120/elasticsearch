@@ -18,7 +18,7 @@ public interface SearchService {
      * 索引目标房源
      * @param houseId
      */
-    Boolean index(Long houseId);
+    void index(Long houseId);
 
     /**
      * 移除房源索引
