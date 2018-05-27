@@ -9,6 +9,7 @@ import com.luqi.service.HouseService;
 import com.luqi.service.QiNiuService;
 import com.luqi.service.ServiceMultiResult;
 import com.luqi.service.ServiceResult;
+import com.luqi.service.search.SearchService;
 import com.luqi.web.dto.HouseDTO;
 import com.luqi.web.dto.HouseDetailDTO;
 import com.luqi.web.dto.HousePictureDTO;
@@ -16,10 +17,8 @@ import com.luqi.web.from.DatatableSearch;
 import com.luqi.web.from.HouseForm;
 import com.luqi.web.from.PhotoForm;
 import com.luqi.web.from.RentSearch;
-//import org.elasticsearch.search.SearchService;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
-import org.elasticsearch.search.SearchService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,8 +67,8 @@ public class HouseServiceImpl implements HouseService {
     @Autowired
     private QiNiuService qiNiuService;
 
-//    @Autowired
-//    private SearchService searchService;
+    @Autowired
+    private SearchService searchService;
 
     @Value("${qiniu.cdn.prefix}")
     private String cdnPrefix;
@@ -150,9 +149,9 @@ public class HouseServiceImpl implements HouseService {
         house.setLastUpdateTime(new Date());
         houseRepository.save(house);
 
-//        if (house.getStatus() == HouseStatus.PASSES.getValue()) {
-//            searchService.index(house.getId());
-//        }
+        if (house.getStatus() == HouseStatus.PASSES.getValue()) {
+            searchService.index(house.getId());
+        }
 
         return ServiceResult.success();
     }
@@ -334,11 +333,11 @@ public class HouseServiceImpl implements HouseService {
         houseRepository.updateStatus(id, status);
 
         // 上架更新索引 其他情况都要删除索引
-//        if (status == HouseStatus.PASSES.getValue()) {
-//            searchService.index(id);
-//        } else {
-//            searchService.remove(id);
-//        }
+        if (status == HouseStatus.PASSES.getValue()) {
+            searchService.index(id);
+        } else {
+            searchService.remove(id);
+        }
         return ServiceResult.success();
     }
 
