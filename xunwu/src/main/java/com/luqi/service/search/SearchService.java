@@ -26,4 +26,11 @@ public interface SearchService {
      */
     void remove(Long houseId);
 
+    /**
+     * 查询房源接口
+     * @param rentSearch
+     * @return
+     */
+    ServiceMultiResult<Long> query(RentSearch rentSearch);
+
 }

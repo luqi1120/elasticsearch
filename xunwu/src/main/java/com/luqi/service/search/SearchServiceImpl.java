@@ -2,6 +2,8 @@ package com.luqi.service.search;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.primitives.Longs;
+import com.luqi.base.HouseSort;
 import com.luqi.entity.House;
 import com.luqi.entity.HouseDetail;
 import com.luqi.entity.HouseTag;
@@ -18,12 +20,14 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortOrder;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,57 +188,57 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public void index(Long houseId) {
-        this.index(houseId, 0);
+//        this.index(houseId, 0);
 
         // 下面是没有使用kafka直接调用
-//        if (houseId == null) {
-//            // 异常
-//        }
-//        House house = houseRepository.findOne(houseId);
-//        if (house == null) {
-//            logger.error("Index house {} dose not exist!", houseId);
-//            return;
-//        }
-//        HouseIndexTemplate indexTemplate = new HouseIndexTemplate();
-//        modelMapper.map(house, indexTemplate);
-//
-//        // 查询具体房屋数据
-//        HouseDetail detail = houseDetailRepository.findByHouseId(houseId);
-//        if (detail == null) {
-//            // TODO 异常
-//        }
-//        modelMapper.map(detail, indexTemplate);
-//
-//        // 查询tag数据
-//        List<HouseTag> houseTags = houseTagRepository.findAllByHouseId(houseId);
-//        if (houseTags != null && StringUtils.isEmpty(houseTags)) {
-////            List<String> tags = houseTags.stream().map(houseTag -> houseTag.getName()).collect(Collectors.toList());
-//            List<String> tags = new ArrayList<>();
-//            houseTags.forEach(houseTag -> tags.add(houseTag.getName()));
-//            indexTemplate.setTags(tags);
-//        }
-//
-//        // 查询ES中有没有索引 name + type
-//        SearchRequestBuilder requestBuilder = this.esClient.prepareSearch(INDEX_NAME).setTypes(INDEX_TYPE)
-//                // 查询条件
-//                .setQuery(QueryBuilders.termQuery(HouseIndexKey.HOUSE_ID, houseId));
-//        logger.debug(requestBuilder.toString());
-//
-//        Boolean result;
-//        SearchResponse searchResponse = requestBuilder.get();
-//        long totalHit = searchResponse.getHits().getTotalHits();
-//        // 如果中条数为0 就创建, 为1就更新
-//        if (totalHit == 0) {
-//            result = create(indexTemplate);
-//        } else if (totalHit == 1) {
-//            String esId = searchResponse.getHits().getAt(0).getId();
-//            result = update(esId, indexTemplate);
-//        } else {
-//            result = deleteAndCreate(totalHit, indexTemplate);
-//        }
-//        if (result) {
-//            logger.debug("Index result with house " + houseId);
-//        }
+        if (houseId == null) {
+            // 异常
+        }
+        House house = houseRepository.findOne(houseId);
+        if (house == null) {
+            logger.error("Index house {} dose not exist!", houseId);
+            return;
+        }
+        HouseIndexTemplate indexTemplate = new HouseIndexTemplate();
+        modelMapper.map(house, indexTemplate);
+
+        // 查询具体房屋数据
+        HouseDetail detail = houseDetailRepository.findByHouseId(houseId);
+        if (detail == null) {
+            // TODO 异常
+        }
+        modelMapper.map(detail, indexTemplate);
+
+        // 查询tag数据
+        List<HouseTag> houseTags = houseTagRepository.findAllByHouseId(houseId);
+        if (houseTags != null && StringUtils.isEmpty(houseTags)) {
+//            List<String> tags = houseTags.stream().map(houseTag -> houseTag.getName()).collect(Collectors.toList());
+            List<String> tags = new ArrayList<>();
+            houseTags.forEach(houseTag -> tags.add(houseTag.getName()));
+            indexTemplate.setTags(tags);
+        }
+
+        // 查询ES中有没有索引 name + type
+        SearchRequestBuilder requestBuilder = this.esClient.prepareSearch(INDEX_NAME).setTypes(INDEX_TYPE)
+                // 查询条件
+                .setQuery(QueryBuilders.termQuery(HouseIndexKey.HOUSE_ID, houseId));
+        logger.debug(requestBuilder.toString());
+
+        Boolean result;
+        SearchResponse searchResponse = requestBuilder.get();
+        long totalHit = searchResponse.getHits().getTotalHits();
+        // 如果中条数为0 就创建, 为1就更新
+        if (totalHit == 0) {
+            result = create(indexTemplate);
+        } else if (totalHit == 1) {
+            String esId = searchResponse.getHits().getAt(0).getId();
+            result = update(esId, indexTemplate);
+        } else {
+            result = deleteAndCreate(totalHit, indexTemplate);
+        }
+        if (result) {
+            logger.debug("Index result with house " + houseId);
+        }
     }
 
     /**
@@ -330,23 +334,23 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public void remove(Long houseId) {
-        this.remove(houseId, 0);
+//        this.remove(houseId, 0);
 
         // 下面是没有使用kafka直接调用
         // 使用DeleteByQueryAction 进行删除
-//        DeleteByQueryRequestBuilder builder = DeleteByQueryAction.INSTANCE
-//                .newRequestBuilder(esClient)
-//
-//                // filter 传入要删除的条件
-//                .filter(QueryBuilders.termQuery(HouseIndexKey.HOUSE_ID, houseId))
-//
-//                // 索引名
-//                .source(INDEX_NAME);
-//        logger.info("Delete by query for house: {}" + builder);
-//
-//        BulkByScrollResponse response = builder.get();
-//        long deleted = response.getDeleted();
-//        logger.info("Delete total: {}" + deleted);
+        DeleteByQueryRequestBuilder builder = DeleteByQueryAction.INSTANCE
+                .newRequestBuilder(esClient)
+
+                // filter 传入要删除的条件
+                .filter(QueryBuilders.termQuery(HouseIndexKey.HOUSE_ID, houseId))
+
+                // 索引名
+                .source(INDEX_NAME);
+        logger.info("Delete by query for house: {}" + builder);
+
+        BulkByScrollResponse response = builder.get();
+        long deleted = response.getDeleted();
+        logger.info("Delete total: {}" + deleted);
     }
 
     private void remove(Long houseId, int retry) {
@@ -364,6 +368,49 @@ public class SearchServiceImpl implements SearchService {
         } catch (JsonProcessingException e) {
             logger.error("Cannot encode json for " + message, e);
         }
+    }
+
+    @Override
+    public ServiceMultiResult<Long> query(RentSearch rentSearch) {
+
+        // 查询条件为boolQuery
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+
+        boolQuery.filter(
+                QueryBuilders.termQuery(HouseIndexKey.CITY_EN_NAME, rentSearch.getCityEnName())
+        );
+
+        if (rentSearch.getRegionEnName() != null && !"*".equals(rentSearch.getRegionEnName())) {
+            boolQuery.filter(
+                    QueryBuilders.termQuery(HouseIndexKey.REGION_EN_NAME, rentSearch.getRegionEnName())
+            );
+        }
+
+        SearchRequestBuilder requestBuilder = this.esClient.prepareSearch(INDEX_NAME).setTypes(INDEX_TYPE)
+                .setQuery(boolQuery)
+                .addSort(
+                        HouseSort.getSortKey(rentSearch.getOrderBy()),
+                        SortOrder.fromString(rentSearch.getOrderDirection()))
+                .setFrom(rentSearch.getStart())
+                .setSize(rentSearch.getSize());
+
+        logger.info("requestBuilder={}",requestBuilder.toString());
+
+        // ES中只查询id
+        List<Long> houseIds = new ArrayList<>();
+        SearchResponse response = requestBuilder.get();
+        if (response.status() != RestStatus.OK) {
+            logger.info("Search status is no ok for" + requestBuilder);
+            return new ServiceMultiResult<>(0, houseIds);
+        }
+
+        // 从hit里面获取每一个houseId的值,转换为String,在转换为Long加到List里面
+        for (SearchHit hit : response.getHits()) {
+            System.out.println(hit.getSource());
+            houseIds.add(Longs.tryParse(String.valueOf(hit.getSource().get(HouseIndexKey.HOUSE_ID))));
+        }
+
+        return new ServiceMultiResult<>(response.getHits().totalHits, houseIds);
     }
 
 }
