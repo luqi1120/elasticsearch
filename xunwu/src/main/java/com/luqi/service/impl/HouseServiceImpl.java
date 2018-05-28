@@ -341,10 +341,35 @@ public class HouseServiceImpl implements HouseService {
         return ServiceResult.success();
     }
 
+    /**
+     * 先从es中查询,查询不到再去MySQL中查询
+     * @param rentSearch
+     * @return
+     */
     @Override
     public ServiceMultiResult<HouseDTO> query(RentSearch rentSearch) {
 
-        // 排序 规则为根据时间排序  private String orderBy = "lastUpdateTime";
+        // 如果es中不是空, 从es中查询
+        if (rentSearch.getKeywords() != null && !rentSearch.getKeywords().isEmpty()) {
+            ServiceMultiResult<Long> serviceResult = searchService.query(rentSearch);
+            if (serviceResult.getTotal() == 0) {
+                return new ServiceMultiResult<>(0, new ArrayList<>());
+            }
+            // 从es中查询
+            return new ServiceMultiResult<>(serviceResult.getTotal(), wrapperHouseResult(serviceResult.getResult()));
+        }
+
+        // 从mysql中查询
+        return simpleQuery(rentSearch);
+    }
+
+    /**
+     * 从mysql中查询
+     * @param rentSearch
+     * @return
+     */
+    private ServiceMultiResult<HouseDTO> simpleQuery(RentSearch rentSearch) {
+// 排序 规则为根据时间排序  private String orderBy = "lastUpdateTime";
         Sort sort = HouseSort.generateSort(rentSearch.getOrderBy(), rentSearch.getOrderDirection());
 
 
@@ -387,18 +412,32 @@ public class HouseServiceImpl implements HouseService {
         wrapperHouseList(HouseIds, idToHouseMap);
 
         return new ServiceMultiResult<>(houses.getTotalElements(), houseDTOS);
+    }
 
-//        if (rentSearch.getKeywords() != null && !rentSearch.getKeywords().isEmpty()) {
-//            ServiceMultiResult<Long> serviceResult = searchService.query(rentSearch);
-//            if (serviceResult.getTotal() == 0) {
-//                return new ServiceMultiResult<>(0, new ArrayList<>());
-//            }
-//
-//            return new ServiceMultiResult<>(serviceResult.getTotal(), wrapperHouseResult(serviceResult.getResult()));
-//        }
-//
-//        return simpleQuery(rentSearch);
-//        return null;
+    /**
+     * 根据houseId在es中查询数据
+     * @param houseIds
+     * @return
+     */
+    private List<HouseDTO> wrapperHouseResult(List<Long> houseIds) {
+        List<HouseDTO> result = new ArrayList<>();
+
+        Map<Long, HouseDTO> idToHouseMap = new HashMap<>();
+        Iterable<House> houses = houseRepository.findAll(houseIds);
+        houses.forEach(house -> {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(this.cdnPrefix + house.getCover());
+            idToHouseMap.put(house.getId(), houseDTO);
+        });
+
+        // 把houseDetail映射到HouseDTO中
+        wrapperHouseList(houseIds, idToHouseMap);
+
+        // 矫正顺序
+        for (Long houseId : houseIds) {
+            result.add(idToHouseMap.get(houseId));
+        }
+        return result;
     }
 
     /**
