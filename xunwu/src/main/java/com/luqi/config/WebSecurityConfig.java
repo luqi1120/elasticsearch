@@ -34,11 +34,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         // 资源访问权限
         http.authorizeRequests()
-                .antMatchers("/admin/login").permitAll() // 管理员登录入口
+                .antMatchers("/admin/login").permitAll() //permitAll() 无条件允许访问 管理员登录入口
                 .antMatchers("/static/**").permitAll() // 静态资源
                 .antMatchers("/user/login").permitAll() // 用户登录入口
-                .antMatchers("/admin/**").hasRole("ADMIN")
-                .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/admin/**").hasRole("ADMIN") // 同下 不过会自动添加 ROLE_ 作为前缀
+                .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")  // hasAnyRole() 如果用户具备给定条件就允许访问
                 .antMatchers("/api/user/**").hasAnyRole("ADMIN","USER")
                 .and()
                 .formLogin()
@@ -56,7 +56,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .accessDeniedPage("/403");
 
         // 防御配置,方便开发就先关闭
-        http.csrf().disable();
+        http.csrf().disable(); // 这行代码表示禁用CSRF跨站请求伪造
         http.headers().frameOptions().sameOrigin();
 
     }
