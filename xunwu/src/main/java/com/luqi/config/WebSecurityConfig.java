@@ -41,13 +41,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")  // hasAnyRole() 如果用户具备给定条件就允许访问
                 .antMatchers("/api/user/**").hasAnyRole("ADMIN","USER")
                 .and()
-                .formLogin()
+                .formLogin() // 启用默认登录页面
                 .loginProcessingUrl("/login") // 配置角色登录处理入口
                 .failureHandler(authFailHandler()) // 登录失败验证器
-                .and()
+                .and() // 将不同的配置指令链接在一起
                 .logout()
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/logout/page")
+                .logoutSuccessUrl("/logout/page") // 退出成功后跳转到 /logout/page 页面
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true) //session会话失效
                 .and()
