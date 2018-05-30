@@ -33,4 +33,10 @@ public interface SearchService {
      */
     ServiceMultiResult<Long> query(RentSearch rentSearch);
 
+    /**
+     * 获取补全建议关键词
+     * @param prefix
+     * @return
+     */
+    ServiceResult<List<String>> suggest(String prefix);
 }

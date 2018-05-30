@@ -50,10 +50,18 @@ public class HouseIndexTemplate {
 
     private List<String> tags; // 标签 ES中适用的是test 相当于string这里用list表示
 
-//    private List<HouseSuggest> suggest;
+    private List<HouseSuggest> suggest; // 搜索提示
 //
 //    private BaiduMapLocation location;
 
+
+    public List<HouseSuggest> getSuggest() {
+        return suggest;
+    }
+
+    public void setSuggest(List<HouseSuggest> suggest) {
+        this.suggest = suggest;
+    }
 
     public Long getHouseId() {
         return houseId;

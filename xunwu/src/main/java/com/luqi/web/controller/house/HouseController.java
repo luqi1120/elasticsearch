@@ -4,6 +4,7 @@ import com.luqi.base.ApiResponse;
 import com.luqi.base.RentValueBlock;
 import com.luqi.entity.SupportAddress;
 import com.luqi.service.*;
+import com.luqi.service.search.SearchService;
 import com.luqi.web.dto.*;
 import com.luqi.web.from.RentSearch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,22 @@ public class HouseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SearchService searchService;
+
+    /**
+     * 自动补全接口
+     */
+    @GetMapping("rent/house/autocomplete")
+    @ResponseBody
+    public ApiResponse autocomplete(@RequestParam(value = "prefix") String prefix) {
+        if (prefix.isEmpty()) {
+            return ApiResponse.ofStatus(ApiResponse.Status.BAD_REQUEST);
+        }
+        ServiceResult<List<String>> result = this.searchService.suggest(prefix);
+        return ApiResponse.ofSuccess(result.getResult());
+    }
 
     /**
      * 获取支持城市列表
