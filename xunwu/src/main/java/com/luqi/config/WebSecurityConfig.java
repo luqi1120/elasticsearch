@@ -1,17 +1,18 @@
 package com.luqi.config;
 
+import com.luqi.security.AuthFilter;
 import com.luqi.security.AuthProvider;
 import com.luqi.security.LoginAuthFailHandler;
 import com.luqi.security.LoginUrlEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import sun.net.httpserver.AuthFilter;
 
 import javax.servlet.Filter;
 
@@ -30,7 +31,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        http.addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class);
 
         // 资源访问权限
         http.authorizeRequests()
@@ -89,12 +90,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new LoginAuthFailHandler(urlEntryPoint());
     }
 
-//    @Bean
-//    private AuthFilter authFilter() {
-//        AuthFilter authFilter = new AuthFilter();
-//        authFilter.setAuthenticationManager(authenticationManager());
-//        authFilter.setAuthenticationFailureHandler(authFailHandler());
-//        return authFilter;
-//    }
+    @Bean
+    public AuthFilter authFilter() {
+        AuthFilter authFilter = new AuthFilter();
+        authFilter.setAuthenticationManager(authenticationManager());
+        authFilter.setAuthenticationFailureHandler(authFailHandler()); // 验证失败
+        return authFilter;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        AuthenticationManager authenticationManager = null;
+        try {
+            authenticationManager =  super.authenticationManager();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return authenticationManager;
+    }
 }
 
